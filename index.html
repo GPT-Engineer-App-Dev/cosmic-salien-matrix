@@ -5,12 +5,150 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GPT Engineer</title>
+  <title>Space Aliens Matrix</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #game-container {
+      text-align: center;
+    }
+    #game-grid {
+      display: inline-grid;
+      grid-template-columns: repeat(10, 30px);
+      grid-gap: 1px;
+      background-color: #001;
+      padding: 10px;
+      border: 2px solid #0f0;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      background-color: #000;
+      border: 1px solid #030;
+    }
+    .player { background-color: #0f0; }
+    .alien { background-color: #f00; }
+    #game-info {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 <body>
-  Your blank canvas
-  <!-- insert your changes here -->
+  <div id="game-container">
+    <div id="game-grid"></div>
+    <div id="game-info">
+      <p>Move: Arrow Keys</p>
+      <p>Score: <span id="score">0</span></p>
+      <p>Lives: <span id="lives">3</span></p>
+    </div>
+  </div>
+  <script>
+    const gridSize = 10;
+    const grid = document.getElementById('game-grid');
+    const scoreElement = document.getElementById('score');
+    const livesElement = document.getElementById('lives');
+    let playerPosition = { x: 0, y: 0 };
+    let aliens = [];
+    let score = 0;
+    let lives = 3;
+
+    function createGrid() {
+      for (let i = 0; i < gridSize * gridSize; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        grid.appendChild(cell);
+      }
+    }
+
+    function updateGrid() {
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => cell.className = 'cell');
+      
+      const playerCell = cells[playerPosition.y * gridSize + playerPosition.x];
+      playerCell.classList.add('player');
+      
+      aliens.forEach(alien => {
+        const alienCell = cells[alien.y * gridSize + alien.x];
+        alienCell.classList.add('alien');
+      });
+    }
+
+    function movePlayer(dx, dy) {
+      const newX = Math.max(0, Math.min(gridSize - 1, playerPosition.x + dx));
+      const newY = Math.max(0, Math.min(gridSize - 1, playerPosition.y + dy));
+      playerPosition = { x: newX, y: newY };
+      checkCollision();
+      updateGrid();
+    }
+
+    function checkCollision() {
+      const alienIndex = aliens.findIndex(alien => 
+        alien.x === playerPosition.x && alien.y === playerPosition.y
+      );
+      if (alienIndex !== -1) {
+        aliens.splice(alienIndex, 1);
+        score += 10;
+        scoreElement.textContent = score;
+        if (aliens.length === 0) {
+          alert('You won! All aliens captured.');
+          resetGame();
+        }
+      }
+    }
+
+    function moveAliens() {
+      aliens.forEach(alien => {
+        const dx = Math.floor(Math.random() * 3) - 1;
+        const dy = Math.floor(Math.random() * 3) - 1;
+        alien.x = Math.max(0, Math.min(gridSize - 1, alien.x + dx));
+        alien.y = Math.max(0, Math.min(gridSize - 1, alien.y + dy));
+      });
+      checkCollision();
+      updateGrid();
+    }
+
+    function spawnAlien() {
+      if (aliens.length < 5) {
+        const x = Math.floor(Math.random() * gridSize);
+        const y = Math.floor(Math.random() * gridSize);
+        if (x !== playerPosition.x || y !== playerPosition.y) {
+          aliens.push({ x, y });
+        }
+      }
+    }
+
+    function resetGame() {
+      playerPosition = { x: 0, y: 0 };
+      aliens = [];
+      score = 0;
+      lives = 3;
+      scoreElement.textContent = score;
+      livesElement.textContent = lives;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      switch(e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
+      }
+    });
+
+    createGrid();
+    setInterval(moveAliens, 1000);
+    setInterval(spawnAlien, 3000);
+    updateGrid();
+  </script>
 </body>
 
 </html>
